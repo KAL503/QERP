@@ -16,15 +16,15 @@ CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
 -- ============================================================================
 -- SECTION 2: ENUM TYPES
 -- ============================================================================
-
 -- User roles with hierarchical permissions
 CREATE TYPE user_role AS ENUM (
     'owner',
     'quality_manager',
     'operations_manager',
-    'office',
+    'inspector',
     'machinist',
-    'inspector'
+    'assembly',
+    'admin'
 );
 
 -- Work order status progression
