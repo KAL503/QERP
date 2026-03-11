@@ -1,0 +1,48 @@
+{% extends "base.html" %}
+{% block title %}Login - QERP{% endblock %}
+{% block content %}
+<div class="row justify-content-center" style="margin-top: 5rem;">
+    <div class="col-md-4">
+        <div class="card">
+            <div class="card-body">
+                <div class="text-center mb-4">
+                    <i class="bi bi-gear-fill" style="font-size: 3rem; color: var(--qerp-primary);"></i>
+                    <h3 class="mt-2">QERP</h3>
+                </div>
+                
+                <form method="POST" action="{{ url_for('login') }}">
+                    <div class="mb-3">
+                        <label for="username" class="form-label">Username</label>
+                        <input 
+                            type="text" 
+                            class="form-control" 
+                            id="username" 
+                            name="username" 
+                            required 
+                            autofocus
+                        >
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="password" class="form-label">Password</label>
+                        <input 
+                            type="password" 
+                            class="form-control" 
+                            id="password" 
+                            name="password" 
+                            required
+                        >
+                    </div>
+                    
+                    <button type="submit" class="btn btn-primary w-100">
+                        <i class="bi bi-box-arrow-in-right"></i> Login
+                    </button>
+                </form>
+            </div>
+            <div class="card-footer text-center text-muted">
+                <small>ISO 9001:2015 Compliant System</small>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
