@@ -1,5 +1,5 @@
 """
-ERPlite - First Time Setup
+QERP - First Time Setup
 Run this script once before starting the application for the first time.
 """
 import getpass
@@ -9,7 +9,7 @@ from werkzeug.security import generate_password_hash
 def setup():
     print("""
 ╔════════════════════════════════════════════════════════╗
-║              Welcome to ERPlite Setup                  ║
+║              Welcome to QERP Setup                  ║
 ║         Run this once before first launch              ║
 ╚════════════════════════════════════════════════════════╝
 """)
