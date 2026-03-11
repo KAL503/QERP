@@ -1,5 +1,5 @@
 """
-ERP Lite - Main Flask Application
+QERP- Main Flask Application
 """
 from flask import Flask, render_template, redirect, url_for, flash, request
 from flask_login import LoginManager, login_user, logout_user, login_required, current_user
@@ -195,7 +195,7 @@ if __name__ == '__main__':
     try:
         port = int(os.getenv('FLASK_PORT', 5000))
         debug = os.getenv('FLASK_DEBUG', 'True').lower() == 'true'
-        company_name = os.getenv('COMPANY_NAME', 'ERPlite')
+        company_name = os.getenv('COMPANY_NAME', 'QERP')
         
         print(f"""
 ╔════════════════════════════════════════════════════════╗
@@ -216,7 +216,7 @@ Press CTRL+C to stop the server
             debug=debug
         )
     except KeyboardInterrupt:
-        print("\n\nShutting down ERPlite...")
+        print("\n\nShutting down QERP...")
         close_db_pool()
     except Exception as e:
         print(f"Error starting application: {e}")
