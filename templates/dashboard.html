@@ -1,0 +1,162 @@
+{% extends "base.html" %}
+
+{% block title %}Dashboard - QERP{% endblock %}
+
+{% block content %}
+
+<div class="row mb-4">
+    <div class="col">
+        <h1><i class="bi bi-speedometer2"></i> Dashboard</h1>
+        <p class="text-muted">Welcome back, {{ current_user.full_name }}</p>
+    </div>
+</div>
+
+<!-- Quick Stats Cards -->
+<div class="row mb-4">
+    <!-- Work Order Status Cards -->
+    {% for stat in wo_stats %}
+    <div class="col-md-3 mb-3">
+        <div class="card 
+            {% if stat.status == 'released_to_floor' %}border-info
+            {% elif stat.status == 'in_production' %}border-primary
+            {% elif stat.status == 'final_inspection' %}border-warning
+            {% endif %}">
+            <div class="card-body">
+                <h6 class="text-muted text-uppercase small">{{ stat.status|replace('_', ' ')|title }}</h6>
+                <h2 class="mb-0">{{ stat.count }}</h2>
+            </div>
+        </div>
+    </div>
+    {% endfor %}
+    
+    <!-- Open NCRs -->
+    <div class="col-md-3 mb-3">
+        <div class="card {% if ncr_count > 0 %}border-danger{% endif %}">
+            <div class="card-body">
+                <h6 class="text-muted text-uppercase small">Open NCRs</h6>
+                <h2 class="mb-0 {% if ncr_count > 0 %}text-danger{% endif %}">{{ ncr_count }}</h2>
+                {% if ncr_count > 0 %}
+                <a href="{{ url_for('inspections.list_ncrs', status='open') }}" class="small">View NCRs →</a>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+    
+    <!-- Overdue WOs -->
+    <div class="col-md-3 mb-3">
+        <div class="card {% if overdue_count > 0 %}border-danger{% endif %}">
+            <div class="card-body">
+                <h6 class="text-muted text-uppercase small">Overdue WOs</h6>
+                <h2 class="mb-0 {% if overdue_count > 0 %}text-danger{% endif %}">{{ overdue_count }}</h2>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Quick Actions -->
+<div class="row mb-4">
+    <div class="col-md-12">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0"><i class="bi bi-lightning"></i> Quick Actions</h5>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    {% if current_user.can_create_work_orders() %}
+                    <div class="col-md-3 mb-2">
+                        <a href="{{ url_for('work_orders.create_work_order') }}" class="btn btn-primary w-100">
+                            <i class="bi bi-plus-circle"></i> New Work Order
+                        </a>
+                    </div>
+                    {% endif %}
+                    
+                    {% if current_user.role in ('machinist', 'inspector', 'assembly') %}
+                    <div class="col-md-3 mb-2">
+                        <a href="{{ url_for('shop_floor.my_operations') }}" class="btn btn-success w-100">
+                            <i class="bi bi-tools"></i> My Operations
+                        </a>
+                    </div>
+                    {% endif %}
+                    
+                    <div class="col-md-3 mb-2">
+                        <a href="{{ url_for('work_orders.list_work_orders') }}" class="btn btn-outline-primary w-100">
+                            <i class="bi bi-list"></i> All Work Orders
+                        </a>
+                    </div>
+                    
+                    {% if current_user.role in ('inspector', 'quality_manager', 'owner') %}
+                    <div class="col-md-3 mb-2">
+                        <a href="{{ url_for('inspections.list_ncrs') }}" class="btn btn-outline-danger w-100">
+                            <i class="bi bi-file-earmark-x"></i> NCRs
+                        </a>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Recent Work Orders -->
+{% if recent_wos %}
+<div class="row">
+    <div class="col-md-12">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0"><i class="bi bi-clock-history"></i> Recent Work Orders</h5>
+            </div>
+            <div class="card-body p-0">
+                <div class="table-responsive">
+                    <table class="table table-hover mb-0">
+                        <thead class="table-light">
+                            <tr>
+                                <th>WO #</th>
+                                <th>Customer</th>
+                                <th>Part</th>
+                                <th>Qty</th>
+                                <th>Due Date</th>
+                                <th>Status</th>
+                                <th>Action</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for wo in recent_wos %}
+                            <tr>
+                                <td><strong>{{ wo.work_order_number }}</strong></td>
+                                <td>{{ wo.customer_code }}</td>
+                                <td>{{ wo.customer_part_number }}</td>
+                                <td>{{ wo.quantity_ordered }}</td>
+                                <td>{{ wo.production_due_date or '—' }}</td>
+                                <td>
+                                    {% if wo.status == 'released_to_floor' %}
+                                        <span class="badge bg-info">Released</span>
+                                    {% elif wo.status == 'in_production' %}
+                                        <span class="badge bg-primary">In Production</span>
+                                    {% elif wo.status == 'final_inspection' %}
+                                        <span class="badge bg-warning text-dark">Final Inspection</span>
+                                    {% elif wo.status == 'pending_release' %}
+                                        <span class="badge bg-secondary">Pending Release</span>
+                                    {% elif wo.status == 'draft' %}
+                                        <span class="badge bg-light text-dark">Draft</span>
+                                    {% else %}
+                                        <span class="badge bg-secondary">{{ wo.status }}</span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    <a href="{{ url_for('work_orders.view_work_order', work_order_id=wo.work_order_id) }}" 
+                                       class="btn btn-sm btn-outline-primary">
+                                        <i class="bi bi-eye"></i> View
+                                    </a>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endif %}
+
+{% endblock %}
