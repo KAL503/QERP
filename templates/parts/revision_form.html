@@ -1,0 +1,105 @@
+{% extends "base.html" %}
+
+{% block title %}Add Revision - {{ part.customer_part_number }} - QERP{% endblock %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col">
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item"><a href="{{ url_for('dashboard') }}">Dashboard</a></li>
+                <li class="breadcrumb-item"><a href="{{ url_for('parts.list_parts') }}">Parts</a></li>
+                <li class="breadcrumb-item"><a href="{{ url_for('parts.view_part', part_id=part.part_id) }}">{{ part.customer_part_number }}</a></li>
+                <li class="breadcrumb-item active">New Revision</li>
+            </ol>
+        </nav>
+        <h1><i class="bi bi-file-earmark-plus"></i> Add Revision</h1>
+        <p class="text-muted">{{ part.company_name }} - Part {{ part.customer_part_number }}</p>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-body">
+                <form method="POST">
+                    <div class="mb-3">
+                        <label for="revision_level" class="form-label required-field">Revision Level</label>
+                        <input type="text" class="form-control" id="revision_level" name="revision_level" required
+                               value="{{ form_data.revision_level if form_data else '' }}"
+                               placeholder="e.g., A, B, C, or Rev 1, Rev 2">
+                        <small class="text-muted">Enter the revision identifier (e.g., A, B, Rev 1, etc.)</small>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="effective_date" class="form-label required-field">Effective Date</label>
+                        <input type="date" class="form-control" id="effective_date" name="effective_date" required
+                               value="{{ form_data.effective_date if form_data else '' }}">
+                        <small class="text-muted">Date this revision becomes effective</small>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" id="supersede_previous" name="supersede_previous" checked>
+                            <label class="form-check-label" for="supersede_previous">
+                                Supersede all previous revisions
+                            </label>
+                        </div>
+                        <small class="text-muted">Check this to mark all previous revisions as superseded</small>
+                    </div>
+                    
+                    <div class="alert alert-info">
+                        <i class="bi bi-info-circle"></i> <strong>Note:</strong> 
+                        Drawing file uploads will be added in a future update. For now, store drawings 
+                        in /qerp-files/drawings/ and reference them manually.
+                    </div>
+                    
+                    <div class="mt-4">
+                        <button type="submit" class="btn btn-primary">
+                            <i class="bi bi-check-circle"></i> Add Revision
+                        </button>
+                        <a href="{{ url_for('parts.view_part', part_id=part.part_id) }}" class="btn btn-secondary">
+                            <i class="bi bi-x-circle"></i> Cancel
+                        </a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header bg-info text-white">
+                <h6 class="mb-0"><i class="bi bi-info-circle"></i> Revision Control</h6>
+            </div>
+            <div class="card-body">
+                <h6>ISO 9001:2015 Compliance</h6>
+                <p class="small">
+                    This revision tracking system satisfies ISO 9001:2015 clause 7.5 
+                    (Documented Information Control) by maintaining a controlled record 
+                    of drawing revisions with effectivity dates.
+                </p>
+                
+                <h6 class="mt-3">Superseding Revisions</h6>
+                <p class="small">
+                    When a new revision supersedes previous ones, the system automatically 
+                    marks older revisions as "Superseded" with the effective date of the new revision.
+                </p>
+                
+                <h6 class="mt-3">Work Order Linking</h6>
+                <p class="small">
+                    Work orders will be linked to specific part revisions, ensuring full 
+                    traceability of which drawing version was used for each production run.
+                </p>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    // Set today's date as default
+    document.getElementById('effective_date').valueAsDate = new Date();
+</script>
+{% endblock %}
