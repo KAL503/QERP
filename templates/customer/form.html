@@ -1,0 +1,242 @@
+{% extends "base.html" %}
+
+{% block title %}{% if customer %}Edit{% else %}New{% endif %} Customer - QERP{% endblock %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col">
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item"><a href="{{ url_for('dashboard') }}">Dashboard</a></li>
+                <li class="breadcrumb-item"><a href="{{ url_for('customers.list_customers') }}">Customers</a></li>
+                <li class="breadcrumb-item active">{% if customer %}Edit{% else %}New{% endif %}</li>
+            </ol>
+        </nav>
+        <h1>
+            <i class="bi bi-building"></i> 
+            {% if customer %}Edit Customer{% else %}New Customer{% endif %}
+        </h1>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-md-8">
+        <div class="card">
+            <div class="card-body">
+                <form method="POST" action="{% if customer %}{{ url_for('customers.edit_customer', customer_id=customer.customer_id) }}{% else %}{{ url_for('customers.create_customer') }}{% endif %}">
+                    
+                    <!-- Basic Information -->
+                    <h5 class="mb-3"><i class="bi bi-info-circle"></i> Basic Information</h5>
+                    
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <label for="customer_code" class="form-label required-field">Customer Code</label>
+                            <input 
+                                type="text" 
+                                class="form-control" 
+                                id="customer_code" 
+                                name="customer_code"
+                                value="{{ form_data.customer_code if form_data else '' }}"
+                                required
+                                pattern="[A-Z0-9_-]+"
+                                title="Only uppercase letters, numbers, underscores, and hyphens"
+                                {% if customer %}disabled{% endif %}
+                            >
+                            <small class="text-muted">Short identifier (e.g., MCMULLEN). Uppercase only.</small>
+                            {% if customer %}
+                                <input type="hidden" name="customer_code" value="{{ customer.customer_code }}">
+                            {% endif %}
+                        </div>
+                        <div class="col-md-6">
+                            <label for="company_name" class="form-label required-field">Company Name</label>
+                            <input 
+                                type="text" 
+                                class="form-control" 
+                                id="company_name" 
+                                name="company_name"
+                                value="{{ form_data.company_name if form_data else '' }}"
+                                required
+                            >
+                        </div>
+                    </div>
+                    
+                    <!-- Address -->
+                    <h5 class="mb-3 mt-4"><i class="bi bi-geo-alt"></i> Address</h5>
+                    
+                    <div class="mb-3">
+                        <label for="address_line1" class="form-label">Address Line 1</label>
+                        <input 
+                            type="text" 
+                            class="form-control" 
+                            id="address_line1" 
+                            name="address_line1"
+                            value="{{ form_data.address_line1 if form_data else '' }}"
+                        >
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="address_line2" class="form-label">Address Line 2</label>
+                        <input 
+                            type="text" 
+                            class="form-control" 
+                            id="address_line2" 
+                            name="address_line2"
+                            value="{{ form_data.address_line2 if form_data else '' }}"
+                        >
+                    </div>
+                    
+                    <div class="row mb-3">
+                        <div class="col-md-5">
+                            <label for="city" class="form-label">City</label>
+                            <input 
+                                type="text" 
+                                class="form-control" 
+                                id="city" 
+                                name="city"
+                                value="{{ form_data.city if form_data else '' }}"
+                            >
+                        </div>
+                        <div class="col-md-3">
+                            <label for="state" class="form-label">State</label>
+                            <input 
+                                type="text" 
+                                class="form-control" 
+                                id="state" 
+                                name="state"
+                                value="{{ form_data.state if form_data else '' }}"
+                            >
+                        </div>
+                        <div class="col-md-4">
+                            <label for="postal_code" class="form-label">Postal Code</label>
+                            <input 
+                                type="text" 
+                                class="form-control" 
+                                id="postal_code" 
+                                name="postal_code"
+                                value="{{ form_data.postal_code if form_data else '' }}"
+                            >
+                        </div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="country" class="form-label">Country</label>
+                        <input 
+                            type="text" 
+                            class="form-control" 
+                            id="country" 
+                            name="country"
+                            value="{{ form_data.country if form_data else 'USA' }}"
+                        >
+                    </div>
+                    
+                    <!-- Contact Information -->
+                    <h5 class="mb-3 mt-4"><i class="bi bi-person"></i> Primary Contact</h5>
+                    
+                    <div class="mb-3">
+                        <label for="primary_contact_name" class="form-label">Contact Name</label>
+                        <input 
+                            type="text" 
+                            class="form-control" 
+                            id="primary_contact_name" 
+                            name="primary_contact_name"
+                            value="{{ form_data.primary_contact_name if form_data else '' }}"
+                        >
+                    </div>
+                    
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <label for="primary_contact_email" class="form-label">Email</label>
+                            <input 
+                                type="email" 
+                                class="form-control" 
+                                id="primary_contact_email" 
+                                name="primary_contact_email"
+                                value="{{ form_data.primary_contact_email if form_data else '' }}"
+                            >
+                        </div>
+                        <div class="col-md-6">
+                            <label for="primary_contact_phone" class="form-label">Phone</label>
+                            <input 
+                                type="tel" 
+                                class="form-control" 
+                                id="primary_contact_phone" 
+                                name="primary_contact_phone"
+                                value="{{ form_data.primary_contact_phone if form_data else '' }}"
+                            >
+                        </div>
+                    </div>
+                    
+                    <!-- Notes -->
+                    <div class="mb-3">
+                        <label for="notes" class="form-label">Notes</label>
+                        <textarea 
+                            class="form-control" 
+                            id="notes" 
+                            name="notes" 
+                            rows="3"
+                        >{{ form_data.notes if form_data else '' }}</textarea>
+                    </div>
+                    
+                    <!-- Status (edit only) -->
+                    {% if customer %}
+                    <div class="mb-3">
+                        <div class="form-check">
+                            <input 
+                                class="form-check-input" 
+                                type="checkbox" 
+                                id="active" 
+                                name="active"
+                                {% if form_data.active %}checked{% endif %}
+                            >
+                            <label class="form-check-label" for="active">
+                                Active
+                            </label>
+                        </div>
+                        <small class="text-muted">Inactive customers are hidden from most lists.</small>
+                    </div>
+                    {% endif %}
+                    
+                    <!-- Buttons -->
+                    <div class="mt-4">
+                        <button type="submit" class="btn btn-primary">
+                            <i class="bi bi-check-circle"></i> 
+                            {% if customer %}Update Customer{% else %}Create Customer{% endif %}
+                        </button>
+                        <a href="{% if customer %}{{ url_for('customers.view_customer', customer_id=customer.customer_id) }}{% else %}{{ url_for('customers.list_customers') }}{% endif %}" class="btn btn-secondary">
+                            <i class="bi bi-x-circle"></i> Cancel
+                        </a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Help Sidebar -->
+    <div class="col-md-4">
+        <div class="card">
+            <div class="card-header bg-info text-white">
+                <h6 class="mb-0"><i class="bi bi-info-circle"></i> Help</h6>
+            </div>
+            <div class="card-body">
+                <h6>Customer Code</h6>
+                <p class="small">A short, unique identifier for this customer. Use uppercase letters, numbers, underscores, or hyphens only.</p>
+                
+                <h6 class="mt-3">Required Fields</h6>
+                <p class="small">Only Customer Code and Company Name are required. Other fields can be added later.</p>
+                
+                <h6 class="mt-3">ISO 9001 Compliance</h6>
+                <p class="small">This customer master record satisfies ISO 9001:2015 clause 8.2 (Customer Communication).</p>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    // Auto-uppercase customer code
+    document.getElementById('customer_code').addEventListener('input', function(e) {
+        e.target.value = e.target.value.toUpperCase();
+    });
+</script>
+{% endblock %}
