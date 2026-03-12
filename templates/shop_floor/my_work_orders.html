@@ -1,0 +1,121 @@
+{% extends "base.html" %}
+
+{% block title %}My Work Orders - QERP{% endblock %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col-md-8">
+        <h1><i class="bi bi-tools"></i> My Work Orders</h1>
+        <p class="text-muted">Work orders with operations for {{ current_user.full_name }} ({{ current_user.role|replace('_', ' ')|title }})</p>
+    </div>
+    <div class="col-md-4 text-end">
+        <a href="{{ url_for('dashboard') }}" class="btn btn-outline-secondary">
+            <i class="bi bi-house"></i> Dashboard
+        </a>
+    </div>
+</div>
+
+{% if work_orders %}
+<div class="card">
+    <div class="card-header">
+        <h5 class="mb-0">
+            <i class="bi bi-list-check"></i> Active Work Orders
+            <span class="badge bg-primary">{{ work_orders|length }}</span>
+        </h5>
+    </div>
+    <div class="card-body p-0">
+        <div class="table-responsive">
+            <table class="table table-hover mb-0">
+                <thead class="table-light">
+                    <tr>
+                        <th>WO #</th>
+                        <th>Customer</th>
+                        <th>Part</th>
+                        <th>Due Date</th>
+                        <th>Qty</th>
+                        <th>My Ops</th>
+                        <th>Status</th>
+                        <th class="table-actions">Action</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for wo in work_orders %}
+                    <tr class="{% if wo.my_in_progress_count > 0 %}table-warning{% endif %}">
+                        <td>
+                            <strong>{{ wo.work_order_number }}</strong>
+                            {% if wo.open_ncr_count > 0 %}
+                                <br><span class="badge bg-danger">{{ wo.open_ncr_count }} NCR</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            <strong>{{ wo.customer_code }}</strong><br>
+                            <small class="text-muted">{{ wo.company_name }}</small>
+                        </td>
+                        <td>
+                            {{ wo.customer_part_number }}<br>
+                            <small class="text-muted">Rev {{ wo.revision_level }}</small>
+                        </td>
+                        <td>
+                            {% if wo.production_due_date %}
+                                {{ wo.production_due_date }}
+                                {% if wo.production_due_date < today %}
+                                    <br><span class="badge bg-danger">OVERDUE</span>
+                                {% endif %}
+                            {% else %}
+                                —
+                            {% endif %}
+                        </td>
+                        <td>
+                            {{ wo.quantity_completed or 0 }} / {{ wo.quantity_ordered }}
+                        </td>
+                        <td>
+                            <span class="badge bg-secondary">{{ wo.available_op_count }} available</span>
+                            {% if wo.my_in_progress_count > 0 %}
+                                <br><span class="badge bg-warning text-dark">{{ wo.my_in_progress_count }} in progress</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            {% if wo.wo_status == 'released_to_floor' %}
+                                <span class="badge bg-info">Released</span>
+                            {% elif wo.wo_status == 'in_production' %}
+                                <span class="badge bg-primary">In Production</span>
+                            {% elif wo.wo_status == 'final_inspection' %}
+                                <span class="badge bg-warning text-dark">Final Inspection</span>
+                            {% endif %}
+                        </td>
+                        <td class="table-actions">
+                            <a href="{{ url_for('shop_floor.work_order_operations', work_order_id=wo.work_order_id) }}"
+                               class="btn btn-sm btn-primary">
+                                <i class="bi bi-arrow-right-circle"></i> View Operations
+                            </a>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% else %}
+<div class="alert alert-info">
+    <i class="bi bi-info-circle"></i>
+    <strong>No work orders available.</strong>
+    All work orders are either not yet released to the floor or all your operations are complete.
+</div>
+{% endif %}
+
+<!-- Role capability info -->
+<div class="card mt-3">
+    <div class="card-header bg-light">
+        <h6 class="mb-0"><i class="bi bi-info-circle"></i> Your Operation Permissions</h6>
+    </div>
+    <div class="card-body small">
+        <p class="mb-2">As <strong>{{ current_user.role|replace('_', ' ')|title }}</strong>, you can work on:</p>
+        <ul class="mb-0">
+            {% for op_type in allowed_types %}
+                <li>{{ op_type|replace('_', ' ')|title }} operations</li>
+            {% endfor %}
+        </ul>
+    </div>
+</div>
+{% endblock %}
