@@ -1,0 +1,95 @@
+{% extends "base.html" %}
+
+{% block title %}Reports - QERP{% endblock %}
+
+{% block content %}
+
+<div class="row mb-4">
+    <div class="col">
+        <h1><i class="bi bi-bar-chart"></i> Reports & Analytics</h1>
+        <p class="text-muted">Production, quality, and performance reports</p>
+    </div>
+</div>
+
+<div class="row">
+    <!-- Production Reports -->
+    <div class="col-md-6 mb-4">
+        <div class="card h-100">
+            <div class="card-header bg-primary text-white">
+                <h5 class="mb-0"><i class="bi bi-clipboard-data"></i> Production Reports</h5>
+            </div>
+            <div class="list-group list-group-flush">
+                <a href="{{ url_for('reports.production_summary') }}" class="list-group-item list-group-item-action">
+                    <div class="d-flex w-100 justify-content-between">
+                        <h6 class="mb-1">Production Summary</h6>
+                        <small class="text-muted"><i class="bi bi-chevron-right"></i></small>
+                    </div>
+                    <p class="mb-1 small text-muted">Work orders completed by date range</p>
+                </a>
+                <a href="{{ url_for('reports.on_time_delivery') }}" class="list-group-item list-group-item-action">
+                    <div class="d-flex w-100 justify-content-between">
+                        <h6 class="mb-1">On-Time Delivery</h6>
+                        <small class="text-muted"><i class="bi bi-chevron-right"></i></small>
+                    </div>
+                    <p class="mb-1 small text-muted">Performance metrics by customer</p>
+                </a>
+                <a href="{{ url_for('reports.work_in_progress') }}" class="list-group-item list-group-item-action">
+                    <div class="d-flex w-100 justify-content-between">
+                        <h6 class="mb-1">Work In Progress (WIP)</h6>
+                        <small class="text-muted"><i class="bi bi-chevron-right"></i></small>
+                    </div>
+                    <p class="mb-1 small text-muted">Current active work orders on shop floor</p>
+                </a>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Quality Reports -->
+    <div class="col-md-6 mb-4">
+        <div class="card h-100">
+            <div class="card-header bg-danger text-white">
+                <h5 class="mb-0"><i class="bi bi-shield-exclamation"></i> Quality Reports</h5>
+            </div>
+            <div class="list-group list-group-flush">
+                <a href="{{ url_for('reports.ncr_trending') }}" class="list-group-item list-group-item-action">
+                    <div class="d-flex w-100 justify-content-between">
+                        <h6 class="mb-1">NCR Trending</h6>
+                        <small class="text-muted"><i class="bi bi-chevron-right"></i></small>
+                    </div>
+                    <p class="mb-1 small text-muted">Non-conformance trends by source and time</p>
+                </a>
+                <a href="{{ url_for('inspections.list_ncrs') }}" class="list-group-item list-group-item-action">
+                    <div class="d-flex w-100 justify-content-between">
+                        <h6 class="mb-1">View All NCRs</h6>
+                        <small class="text-muted"><i class="bi bi-chevron-right"></i></small>
+                    </div>
+                    <p class="mb-1 small text-muted">Full NCR list with filters</p>
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Quick Stats -->
+<div class="row mt-4">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0"><i class="bi bi-info-circle"></i> About Reports</h5>
+            </div>
+            <div class="card-body">
+                <p class="mb-2">
+                    <strong>Export Options:</strong> Most reports can be exported to CSV for further analysis in Excel.
+                </p>
+                <p class="mb-2">
+                    <strong>Date Ranges:</strong> Use the date pickers in each report to customize the time period.
+                </p>
+                <p class="mb-0">
+                    <strong>ISO 9001:</strong> These reports satisfy Clause 9.1 requirements for monitoring and measurement.
+                </p>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock %}
