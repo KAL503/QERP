@@ -1,0 +1,155 @@
+{% extends "base.html" %}
+
+{% block title %}Production Summary Report - QERP{% endblock %}
+
+{% block content %}
+
+<div class="row mb-3">
+    <div class="col">
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item"><a href="{{ url_for('dashboard') }}">Dashboard</a></li>
+                <li class="breadcrumb-item"><a href="{{ url_for('reports.reports_dashboard') }}">Reports</a></li>
+                <li class="breadcrumb-item active">Production Summary</li>
+            </ol>
+        </nav>
+    </div>
+</div>
+
+<div class="row mb-4">
+    <div class="col-md-8">
+        <h1><i class="bi bi-clipboard-data"></i> Production Summary Report</h1>
+        <p class="text-muted">Work orders completed in selected date range</p>
+    </div>
+    <div class="col-md-4 text-end">
+        <a href="{{ url_for('reports.export_csv', report_type='production', start_date=start_date, end_date=end_date) }}" 
+           class="btn btn-success">
+            <i class="bi bi-file-earmark-spreadsheet"></i> Export to CSV
+        </a>
+    </div>
+</div>
+
+<!-- Date Range Filter -->
+<div class="card mb-3">
+    <div class="card-body">
+        <form method="GET" class="row g-3">
+            <div class="col-md-4">
+                <label for="start_date" class="form-label">Start Date</label>
+                <input type="date" class="form-control" id="start_date" name="start_date" value="{{ start_date }}">
+            </div>
+            <div class="col-md-4">
+                <label for="end_date" class="form-label">End Date</label>
+                <input type="date" class="form-control" id="end_date" name="end_date" value="{{ end_date }}">
+            </div>
+            <div class="col-md-4">
+                <label class="form-label">&nbsp;</label>
+                <button type="submit" class="btn btn-primary w-100">
+                    <i class="bi bi-search"></i> Run Report
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Summary Stats -->
+<div class="row mb-4">
+    <div class="col-md-3">
+        <div class="card border-primary">
+            <div class="card-body text-center">
+                <h2 class="mb-0">{{ summary.total_wos }}</h2>
+                <p class="text-muted mb-0">Total Work Orders</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card border-success">
+            <div class="card-body text-center">
+                <h2 class="mb-0 text-success">{{ summary.on_time }}</h2>
+                <p class="text-muted mb-0">On Time</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card border-danger">
+            <div class="card-body text-center">
+                <h2 class="mb-0 text-danger">{{ summary.late }}</h2>
+                <p class="text-muted mb-0">Late</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card border-info">
+            <div class="card-body text-center">
+                <h2 class="mb-0 text-info">{{ summary.on_time_pct }}%</h2>
+                <p class="text-muted mb-0">On-Time %</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Work Orders Table -->
+{% if work_orders %}
+<div class="card">
+    <div class="card-header">
+        <h5 class="mb-0">Completed Work Orders</h5>
+    </div>
+    <div class="card-body p-0">
+        <div class="table-responsive">
+            <table class="table table-hover table-sm mb-0">
+                <thead class="table-light">
+                    <tr>
+                        <th>WO #</th>
+                        <th>Customer</th>
+                        <th>Part Number</th>
+                        <th>Qty</th>
+                        <th>Due Date</th>
+                        <th>Completed</th>
+                        <th>Status</th>
+                        <th>Performance</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for wo in work_orders %}
+                    <tr>
+                        <td>
+                            <a href="{{ url_for('work_orders.view_work_order', work_order_id=wo.work_order_id) }}">
+                                {{ wo.work_order_number }}
+                            </a>
+                        </td>
+                        <td>{{ wo.customer_code }}</td>
+                        <td>{{ wo.customer_part_number }} Rev {{ wo.revision_level }}</td>
+                        <td>{{ wo.quantity_ordered }}</td>
+                        <td>{{ wo.production_due_date }}</td>
+                        <td>{{ wo.completion_date.strftime('%Y-%m-%d') if wo.completion_date else '—' }}</td>
+                        <td>
+                            <span class="badge 
+                                {% if wo.status == 'shipped' %}bg-success
+                                {% elif wo.status == 'pending_ship_release' %}bg-info
+                                {% elif wo.status == 'final_inspection' %}bg-warning text-dark
+                                {% else %}bg-primary
+                                {% endif %}">
+                                {{ wo.status|replace('_', ' ')|title }}
+                            </span>
+                        </td>
+                        <td>
+                            {% if wo.was_late %}
+                                <span class="badge bg-danger">Late</span>
+                            {% else %}
+                                <span class="badge bg-success">On Time</span>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% else %}
+<div class="alert alert-info">
+    <i class="bi bi-info-circle"></i>
+    No work orders completed in the selected date range.
+</div>
+{% endif %}
+
+{% endblock %}
