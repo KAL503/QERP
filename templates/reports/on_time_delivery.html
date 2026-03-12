@@ -1,0 +1,152 @@
+{% extends "base.html" %}
+
+{% block title %}On-Time Delivery Report - QERP{% endblock %}
+
+{% block content %}
+
+<div class="row mb-3">
+    <div class="col">
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item"><a href="{{ url_for('dashboard') }}">Dashboard</a></li>
+                <li class="breadcrumb-item"><a href="{{ url_for('reports.reports_dashboard') }}">Reports</a></li>
+                <li class="breadcrumb-item active">On-Time Delivery</li>
+            </ol>
+        </nav>
+    </div>
+</div>
+
+<div class="row mb-4">
+    <div class="col">
+        <h1><i class="bi bi-clock-history"></i> On-Time Delivery Report</h1>
+        <p class="text-muted">Performance metrics by customer</p>
+    </div>
+</div>
+
+<!-- Date Range Filter -->
+<div class="card mb-3">
+    <div class="card-body">
+        <form method="GET" class="row g-3">
+            <div class="col-md-4">
+                <label for="start_date" class="form-label">Start Date</label>
+                <input type="date" class="form-control" id="start_date" name="start_date" value="{{ start_date }}">
+            </div>
+            <div class="col-md-4">
+                <label for="end_date" class="form-label">End Date</label>
+                <input type="date" class="form-control" id="end_date" name="end_date" value="{{ end_date }}">
+            </div>
+            <div class="col-md-4">
+                <label class="form-label">&nbsp;</label>
+                <button type="submit" class="btn btn-primary w-100">
+                    <i class="bi bi-search"></i> Run Report
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Overall Performance -->
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="card border-primary">
+            <div class="card-header bg-primary text-white">
+                <h5 class="mb-0">Overall Performance</h5>
+            </div>
+            <div class="card-body">
+                <div class="row text-center">
+                    <div class="col-md-4">
+                        <h2>{{ totals.total_wos }}</h2>
+                        <p class="text-muted mb-0">Total Work Orders</p>
+                    </div>
+                    <div class="col-md-4">
+                        <h2 class="text-success">{{ totals.on_time_wos }}</h2>
+                        <p class="text-muted mb-0">Delivered On Time</p>
+                    </div>
+                    <div class="col-md-4">
+                        <h2 class="text-info">{{ overall_pct }}%</h2>
+                        <p class="text-muted mb-0">On-Time Delivery Rate</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- By Customer -->
+{% if by_customer %}
+<div class="card">
+    <div class="card-header">
+        <h5 class="mb-0">Performance by Customer</h5>
+    </div>
+    <div class="card-body p-0">
+        <div class="table-responsive">
+            <table class="table table-hover table-sm mb-0">
+                <thead class="table-light">
+                    <tr>
+                        <th>Customer</th>
+                        <th class="text-end">Total WOs</th>
+                        <th class="text-end">On Time</th>
+                        <th class="text-end">Late</th>
+                        <th class="text-end">On-Time %</th>
+                        <th>Performance Bar</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for customer in by_customer %}
+                    <tr>
+                        <td>
+                            <strong>{{ customer.customer_code }}</strong><br>
+                            <small class="text-muted">{{ customer.company_name }}</small>
+                        </td>
+                        <td class="text-end">{{ customer.total_wos }}</td>
+                        <td class="text-end text-success">{{ customer.on_time_wos }}</td>
+                        <td class="text-end text-danger">{{ customer.total_wos - customer.on_time_wos }}</td>
+                        <td class="text-end">
+                            <strong 
+                                {% if customer.on_time_pct >= 95 %}class="text-success"
+                                {% elif customer.on_time_pct >= 85 %}class="text-warning"
+                                {% else %}class="text-danger"
+                                {% endif %}>
+                                {{ customer.on_time_pct }}%
+                            </strong>
+                        </td>
+                        <td>
+                            <div class="progress" style="height: 25px;">
+                                <div class="progress-bar 
+                                    {% if customer.on_time_pct >= 95 %}bg-success
+                                    {% elif customer.on_time_pct >= 85 %}bg-warning
+                                    {% else %}bg-danger
+                                    {% endif %}" 
+                                    role="progressbar" 
+                                    style="width: {{ customer.on_time_pct }}%">
+                                    {{ customer.on_time_pct }}%
+                                </div>
+                            </div>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% else %}
+<div class="alert alert-info">
+    <i class="bi bi-info-circle"></i>
+    No data available for the selected date range.
+</div>
+{% endif %}
+
+<!-- Performance Legend -->
+<div class="card mt-3">
+    <div class="card-body">
+        <h6>Performance Indicators:</h6>
+        <ul class="mb-0">
+            <li><span class="badge bg-success">Green</span> ≥ 95% On-Time (Excellent)</li>
+            <li><span class="badge bg-warning text-dark">Yellow</span> 85-94% On-Time (Good)</li>
+            <li><span class="badge bg-danger">Red</span> < 85% On-Time (Needs Improvement)</li>
+        </ul>
+    </div>
+</div>
+
+{% endblock %}
