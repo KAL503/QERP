@@ -1,0 +1,146 @@
+{% extends "base.html" %}
+
+{% block title %}Parts - QERP{% endblock %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col-md-6">
+        <h1><i class="bi bi-box-seam"></i> Parts</h1>
+        <p class="text-muted">Part master data with revision control - ISO 9001: 7.5, 8.5.2</p>
+    </div>
+    <div class="col-md-6 text-end">
+        {% if current_user.can_create_work_orders() %}
+        <a href="{{ url_for('parts.create_part') }}" class="btn btn-primary">
+            <i class="bi bi-plus-circle"></i> Add New Part
+        </a>
+        {% endif %}
+    </div>
+</div>
+
+<!-- Search and Filter -->
+<div class="card mb-3">
+    <div class="card-body">
+        <form method="GET" action="{{ url_for('parts.list_parts') }}" class="row g-3">
+            <div class="col-md-4">
+                <label for="search" class="form-label">Search</label>
+                <input 
+                    type="text" 
+                    class="form-control" 
+                    id="search" 
+                    name="search" 
+                    value="{{ search }}"
+                    placeholder="Part number, description, material..."
+                >
+            </div>
+            <div class="col-md-4">
+                <label for="customer_id" class="form-label">Customer</label>
+                <select class="form-select" id="customer_id" name="customer_id">
+                    <option value="">All Customers</option>
+                    {% for customer in customers %}
+                    <option value="{{ customer.customer_id }}" {% if selected_customer_id == customer.customer_id|string %}selected{% endif %}>
+                        {{ customer.customer_code }} - {{ customer.company_name }}
+                    </option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="col-md-2">
+                <label class="form-label">&nbsp;</label>
+                <div class="form-check">
+                    <input 
+                        class="form-check-input" 
+                        type="checkbox" 
+                        id="active_only" 
+                        name="active_only"
+                        value="true"
+                        {% if active_only %}checked{% endif %}
+                    >
+                    <label class="form-check-label" for="active_only">Active only</label>
+                </div>
+            </div>
+            <div class="col-md-2">
+                <label class="form-label">&nbsp;</label>
+                <div>
+                    <button type="submit" class="btn btn-secondary w-100">
+                        <i class="bi bi-search"></i> Search
+                    </button>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Parts List -->
+<div class="card">
+    <div class="card-header">
+        <h5 class="mb-0">
+            <i class="bi bi-list"></i> Parts List 
+            <span class="badge bg-secondary">{{ parts|length }} found</span>
+        </h5>
+    </div>
+    <div class="card-body">
+        {% if parts %}
+        <div class="table-responsive">
+            <table class="table table-hover">
+                <thead>
+                    <tr>
+                        <th>Customer</th>
+                        <th>Part Number</th>
+                        <th>Description</th>
+                        <th>Material</th>
+                        <th>Finish</th>
+                        <th>Revisions</th>
+                        <th>Status</th>
+                        <th class="table-actions">Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for part in parts %}
+                    <tr>
+                        <td>
+                            <strong>{{ part.customer_code }}</strong><br>
+                            <small class="text-muted">{{ part.company_name }}</small>
+                        </td>
+                        <td><strong>{{ part.customer_part_number }}</strong></td>
+                        <td>{{ part.description or '-' }}</td>
+                        <td>{{ part.material or '-' }}</td>
+                        <td>{{ part.finish or '-' }}</td>
+                        <td>
+                            <span class="badge bg-info">{{ part.revision_count }} rev(s)</span>
+                        </td>
+                        <td>
+                            {% if part.active %}
+                                <span class="badge bg-success badge-status">Active</span>
+                            {% else %}
+                                <span class="badge bg-secondary badge-status">Inactive</span>
+                            {% endif %}
+                        </td>
+                        <td class="table-actions">
+                            <a href="{{ url_for('parts.view_part', part_id=part.part_id) }}" 
+                               class="btn btn-sm btn-outline-primary" 
+                               title="View Details">
+                                <i class="bi bi-eye"></i>
+                            </a>
+                            {% if current_user.can_create_work_orders() %}
+                            <a href="{{ url_for('parts.edit_part', part_id=part.part_id) }}" 
+                               class="btn btn-sm btn-outline-secondary"
+                               title="Edit">
+                                <i class="bi bi-pencil"></i>
+                            </a>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+        <div class="alert alert-info">
+            <i class="bi bi-info-circle"></i> No parts found. 
+            {% if current_user.can_create_work_orders() %}
+                <a href="{{ url_for('parts.create_part') }}">Add your first part</a>
+            {% endif %}
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}
