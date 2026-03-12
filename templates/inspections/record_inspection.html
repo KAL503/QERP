@@ -1,0 +1,140 @@
+{% extends "base.html" %}
+
+{% block title %}Record Inspection - QERP{% endblock %}
+
+{% block content %}
+
+<div class="row mb-3">
+    <div class="col">
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item"><a href="{{ url_for('dashboard') }}">Dashboard</a></li>
+                <li class="breadcrumb-item"><a href="{{ url_for('shop_floor.my_operations') }}">Shop Floor</a></li>
+                <li class="breadcrumb-item active">Record Inspection</li>
+            </ol>
+        </nav>
+    </div>
+</div>
+
+<div class="card mb-3">
+    <div class="card-header bg-warning text-dark">
+        <h4 class="mb-0">
+            <i class="bi bi-clipboard-check"></i>
+            Record Inspection Results
+        </h4>
+    </div>
+    <div class="card-body">
+        <div class="row mb-3">
+            <div class="col-md-6">
+                <h6 class="text-muted">Work Order</h6>
+                <p class="mb-1"><strong>WO #:</strong> {{ operation.work_order_number }}</p>
+                <p class="mb-1"><strong>Customer:</strong> {{ operation.customer_code }} — {{ operation.company_name }}</p>
+                <p class="mb-1"><strong>Part:</strong> {{ operation.customer_part_number}} Rev {{ operation.revision_level }}</p>
+                <p class="mb-1"><strong>Qty Ordered:</strong> {{ operation.quantity_ordered }}</p>
+            </div>
+            <div class="col-md-6">
+                <h6 class="text-muted">Operation</h6>
+                <p class="mb-1"><strong>Code:</strong> <code>{{ operation.operation_code }}</code></p>
+                <p class="mb-1"><strong>Description:</strong> {{ operation.operation_description }}</p>
+                <p class="mb-1"><strong>Type:</strong> <span class="badge bg-warning text-dark">Quality</span></p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<form method="POST">
+    <div class="card">
+        <div class="card-header">
+            <h5 class="mb-0">Inspection Details</h5>
+        </div>
+        <div class="card-body">
+            <div class="row">
+                <div class="col-md-6">
+                    <div class="mb-3">
+                        <label for="inspection_type" class="form-label required-field">Inspection Type</label>
+                        <select class="form-select" id="inspection_type" name="inspection_type" required>
+                            <option value="">Select type...</option>
+                            <option value="in_process">In-Process Inspection</option>
+                            <option value="first_article">First Article Inspection (FAI)</option>
+                            <option value="aql">AQL Sampling Inspection</option>
+                            <option value="final">Final Inspection</option>
+                            <option value="receiving">Receiving Inspection</option>
+                        </select>
+                    </div>
+                </div>
+                
+                <div class="col-md-6">
+                    <div class="mb-3">
+                        <label for="equipment_used" class="form-label">Equipment Used</label>
+                        <input type="text" class="form-control" id="equipment_used" name="equipment_used"
+                               placeholder="e.g. Herz CNC3, Calipers, CMM">
+                        <small class="text-muted">CMM machine or measuring equipment</small>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="row">
+                <div class="col-md-4">
+                    <div class="mb-3">
+                        <label for="quantity_inspected" class="form-label required-field">Quantity Inspected</label>
+                        <input type="number" class="form-control" id="quantity_inspected" name="quantity_inspected"
+                               min="1" required>
+                    </div>
+                </div>
+                
+                <div class="col-md-4">
+                    <div class="mb-3">
+                        <label for="quantity_passed" class="form-label required-field">Quantity Passed</label>
+                        <input type="number" class="form-control" id="quantity_passed" name="quantity_passed"
+                               min="0" required>
+                        <small class="text-muted">Quantity failed = inspected - passed</small>
+                    </div>
+                </div>
+                
+                <div class="col-md-4">
+                    <div class="mb-3">
+                        <label for="result" class="form-label required-field">Overall Result</label>
+                        <select class="form-select" id="result" name="result" required>
+                            <option value="">Select result...</option>
+                            <option value="pass" class="text-success">PASS</option>
+                            <option value="fail" class="text-danger">FAIL</option>
+                            <option value="conditional" class="text-warning">CONDITIONAL</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="mb-3">
+                <label for="cmm_report_path" class="form-label">CMM Report File Path</label>
+                <input type="text" class="form-control" id="cmm_report_path" name="cmm_report_path"
+                       placeholder="V:\Quality Lab\02-Results HPP Drive\[part_number]\Top_02-17-26_1.pdf">
+                <small class="text-muted">
+                    <i class="bi bi-info-circle"></i>
+                    Save CMM report first, then paste full file path here. Example: V:\Quality Lab\02-Results HPP Drive\1100135924\Top_02-17-26_1.pdf
+                </small>
+            </div>
+            
+            <div class="mb-3">
+                <label for="notes" class="form-label">Inspection Notes</label>
+                <textarea class="form-control" id="notes" name="notes" rows="3"
+                          placeholder="Any observations, issues, or additional details..."></textarea>
+            </div>
+            
+            <div class="alert alert-info">
+                <i class="bi bi-info-circle"></i>
+                <strong>Note:</strong> If result is FAIL, you will be prompted to create an NCR (Non-Conformance Report) after recording this inspection.
+            </div>
+        </div>
+        <div class="card-footer">
+            <button type="submit" class="btn btn-primary">
+                <i class="bi bi-check-circle"></i> Record Inspection
+            </button>
+            <a href="{{ url_for('shop_floor.view_operation', operation_id=operation.operation_id) }}" 
+               class="btn btn-secondary">
+                <i class="bi bi-x-circle"></i> Cancel
+            </a>
+        </div>
+    </div>
+</form>
+
+{% endblock %}
