@@ -1,0 +1,471 @@
+{% extends "base.html" %}
+
+{% block title %}{{ op.operation_code }} — {{ op.work_order_number }} - QERP{% endblock %}
+
+{% block content %}
+
+<!-- Breadcrumb -->
+<div class="row mb-3">
+    <div class="col">
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item"><a href="{{ url_for('dashboard') }}">Dashboard</a></li>
+                <li class="breadcrumb-item"><a href="{{ url_for('shop_floor.my_operations') }}">My Operations</a></li>
+                <li class="breadcrumb-item active">{{ op.operation_code }}</li>
+            </ol>
+        </nav>
+    </div>
+</div>
+
+<!-- Open NCR Warning -->
+{% if op.open_ncr_count > 0 %}
+<div class="alert alert-danger">
+    <i class="bi bi-exclamation-triangle-fill"></i>
+    <strong>HOLD — {{ op.open_ncr_count }} OPEN NCR(S) ON THIS WORK ORDER</strong>
+    — Do not proceed without authorization.
+</div>
+{% endif %}
+
+<!-- Operation Header Card -->
+<div class="card mb-3">
+    <div class="card-header d-flex justify-content-between align-items-center">
+        <h4 class="mb-0">
+            <i class="bi bi-gear"></i>
+            Operation: <code>{{ op.operation_code }}</code> — {{ op.operation_description }}
+        </h4>
+        <div>
+            {% if op.status == 'pending' %}
+                <span class="badge bg-light text-dark border fs-6">PENDING</span>
+            {% elif op.status == 'in_progress' %}
+                <span class="badge bg-warning text-dark fs-6">IN PROGRESS</span>
+            {% elif op.status == 'complete' %}
+                <span class="badge bg-success fs-6">COMPLETE</span>
+            {% elif op.status == 'on_hold' %}
+                <span class="badge bg-danger fs-6">ON HOLD</span>
+            {% endif %}
+        </div>
+    </div>
+    <div class="card-body">
+        <div class="row">
+            <!-- Work Order Info -->
+            <div class="col-md-6">
+                <h6 class="text-muted">Work Order</h6>
+                <table class="table table-sm table-borderless mb-3">
+                    <tr>
+                        <th width="40%">WO #:</th>
+                        <td><strong>{{ op.work_order_number }}</strong></td>
+                    </tr>
+                    <tr>
+                        <th>Customer:</th>
+                        <td><strong>{{ op.customer_code }}</strong> — {{ op.company_name }}</td>
+                    </tr>
+                    <tr>
+                        <th>Part:</th>
+                        <td>{{ op.customer_part_number }} Rev {{ op.revision_level }}</td>
+                    </tr>
+                    <tr>
+                        <th>Description:</th>
+                        <td>{{ op.part_description or '—' }}</td>
+                    </tr>
+                    <tr>
+                        <th>Qty Ordered:</th>
+                        <td><strong>{{ op.quantity_ordered }}</strong></td>
+                    </tr>
+                    <tr>
+                        <th>Due Date:</th>
+                        <td>{{ op.production_due_date or '—' }}</td>
+                    </tr>
+                </table>
+            </div>
+
+            <!-- Operation Details -->
+            <div class="col-md-6">
+                <h6 class="text-muted">Operation Details</h6>
+                <table class="table table-sm table-borderless mb-0">
+                    <tr>
+                        <th width="40%">Sequence:</th>
+                        <td>#{{ op.sequence_number }}</td>
+                    </tr>
+                    <tr>
+                        <th>Type:</th>
+                        <td>
+                            <span class="badge
+                                {% if op.operation_type == 'machining' %}bg-primary
+                                {% elif op.operation_type == 'quality' %}bg-warning text-dark
+                                {% elif op.operation_type == 'finishing' %}bg-info
+                                {% elif op.operation_type == 'outside_service' %}bg-secondary
+                                {% elif op.operation_type == 'assembly' %}bg-success
+                                {% endif %}">
+                                {{ op.operation_type|replace('_', ' ')|title }}
+                            </span>
+                        </td>
+                    </tr>
+                    <tr>
+                        <th>Work Center:</th>
+                        <td>{{ op.work_center or '—' }}</td>
+                    </tr>
+                    <tr>
+                        <th>Machine Planned:</th>
+                        <td>{{ op.machine_number_planned or '—' }}</td>
+                    </tr>
+                    <tr>
+                        <th>Machine Actual:</th>
+                        <td>{{ op.machine_number_actual or '—' }}</td>
+                    </tr>
+                    <tr>
+                        <th>Qty Started:</th>
+                        <td>{{ op.quantity_started or '—' }}</td>
+                    </tr>
+                    <tr>
+                        <th>Qty Finished:</th>
+                        <td>
+                            {% if op.quantity_finished and op.quantity_finished > 0 %}
+                                <strong>{{ op.quantity_finished }}</strong> / {{ op.quantity_ordered }}
+                                {% set progress_pct = (op.quantity_finished / op.quantity_ordered * 100)|round|int %}
+                                <div class="progress mt-1" style="height: 8px;">
+                                    <div class="progress-bar {% if progress_pct >= 100 %}bg-success{% else %}bg-info{% endif %}" 
+                                         role="progressbar" 
+                                         style="width: {{ progress_pct }}%"
+                                         aria-valuenow="{{ progress_pct }}" 
+                                         aria-valuemin="0" 
+                                         aria-valuemax="100">
+                                    </div>
+                                </div>
+                                <small class="text-muted">{{ progress_pct }}% complete</small>
+                            {% else %}
+                                —
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% if op.start_date %}
+                    <tr>
+                        <th>Started:</th>
+                        <td>{{ op.start_date.strftime('%m/%d/%Y %I:%M %p') }} by {{ op.started_by_initials }}</td>
+                    </tr>
+                    {% endif %}
+                    {% if op.end_date %}
+                    <tr>
+                        <th>Completed:</th>
+                        <td>{{ op.end_date.strftime('%m/%d/%Y %I:%M %p') }} by {{ op.ended_by_initials }}</td>
+                    </tr>
+                    {% endif %}
+                </table>
+            </div>
+        </div>
+
+        {% if op.notes %}
+        <div class="row mt-3">
+            <div class="col-12">
+                <h6 class="text-muted">Notes / History</h6>
+                <div class="alert alert-light border mb-0">
+                    <pre class="mb-0" style="white-space: pre-wrap; font-family: inherit;">{{ op.notes }}</pre>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+    </div>
+</div>
+
+<!-- Routing Context -->
+<div class="card mb-3">
+    <div class="card-header">
+        <h6 class="mb-0"><i class="bi bi-arrow-left-right"></i> Routing Context</h6>
+    </div>
+    <div class="card-body">
+        <div class="row">
+            <div class="col-md-4">
+                <h6 class="text-muted small">Previous Operations</h6>
+                {% if previous_operations %}
+                    <ul class="list-unstyled small">
+                        {% for prev_op in previous_operations %}
+                            <li>
+                                <code>{{ prev_op.operation_code }}</code> {{ prev_op.operation_description }}
+                                <span class="badge bg-{{ 'success' if prev_op.status == 'complete' else 'secondary' }} ms-1">
+                                    {{ prev_op.status }}
+                                </span>
+                            </li>
+                        {% endfor %}
+                    </ul>
+                {% else %}
+                    <p class="text-muted small">This is the first operation</p>
+                {% endif %}
+            </div>
+            <div class="col-md-4 text-center">
+                <div class="p-3 bg-light rounded">
+                    <h5 class="mb-0"><code>{{ op.operation_code }}</code></h5>
+                    <p class="text-muted small mb-0">← YOU ARE HERE</p>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <h6 class="text-muted small">Next Operations</h6>
+                {% if next_operations %}
+                    <ul class="list-unstyled small">
+                        {% for next_op in next_operations %}
+                            <li>
+                                <code>{{ next_op.operation_code }}</code> {{ next_op.operation_description }}
+                                <span class="badge bg-{{ 'success' if next_op.status == 'complete' else 'secondary' }} ms-1">
+                                    {{ next_op.status }}
+                                </span>
+                            </li>
+                        {% endfor %}
+                    </ul>
+                {% else %}
+                    <p class="text-muted small">This is the final operation</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Action Cards -->
+<div class="row">
+
+    <!-- START OPERATION -->
+    {% if can_start[0] %}
+    <div class="col-md-6">
+        <div class="card border-primary">
+            <div class="card-header bg-primary text-white">
+                <h5 class="mb-0">
+                    {% if op.operation_type == 'quality' %}
+                        <i class="bi bi-clipboard-check"></i> Record Inspection
+                    {% elif op.operation_type == 'outside_service' %}
+                        <i class="bi bi-send"></i> Mark as Sent to Supplier
+                    {% else %}
+                        <i class="bi bi-play-circle"></i> Start Operation
+                    {% endif %}
+                </h5>
+            </div>
+            <div class="card-body">
+                {% if op.operation_type == 'quality' %}
+                    <p class="mb-3">Record inspection results for this quality operation.</p>
+                    <a href="{{ url_for('inspections.record_inspection', operation_id=op.operation_id) }}" 
+                       class="btn btn-primary w-100">
+                        <i class="bi bi-clipboard-check"></i> Record Inspection
+                    </a>
+                {% elif op.operation_type == 'outside_service' %}
+                    <p class="mb-3">Mark this operation as sent to outside service supplier.</p>
+                    <form method="POST" action="{{ url_for('shop_floor.start_operation', operation_id=op.operation_id) }}">
+                        <div class="mb-3">
+                            <label for="machine_actual" class="form-label">Supplier</label>
+                            <select class="form-select" id="machine_actual" name="machine_actual">
+                                <option value="">Select supplier...</option>
+                                {% for supplier in os_suppliers %}
+                                <option value="{{ supplier.supplier_code }}" 
+                                    {% if op.work_center == supplier.supplier_code or op.machine_number_planned == supplier.supplier_code %}selected{% endif %}>
+                                    {{ supplier.supplier_code }} — {{ supplier.supplier_name }}
+                                </option>
+                                {% endfor %}
+                            </select>
+                            <small class="text-muted">Which outside service supplier is handling this operation?</small>
+                        </div>
+                        <div class="mb-3">
+                            <label for="quantity_started" class="form-label">Quantity Sent (optional)</label>
+                            <input type="number" class="form-control" id="quantity_started" name="quantity_started"
+                                   min="1" placeholder="{{ op.quantity_ordered }}">
+                            <small class="text-muted">How many parts are being sent out?</small>
+                        </div>
+                        <div class="mb-3">
+                            <label for="notes" class="form-label">Notes (optional)</label>
+                            <textarea class="form-control" id="notes" name="notes" rows="2"
+                                      placeholder="PO number, special instructions, expected return date..."></textarea>
+                        </div>
+                        <button type="submit" class="btn btn-primary w-100">
+                            <i class="bi bi-send"></i> Mark as Sent to Supplier
+                        </button>
+                    </form>
+                {% else %}
+                <form method="POST" action="{{ url_for('shop_floor.start_operation', operation_id=op.operation_id) }}">
+                    <div class="mb-3">
+                        <label for="machine_actual" class="form-label">Machine Used (optional)</label>
+                        <input type="text" class="form-control" id="machine_actual" name="machine_actual"
+                               value="{{ op.machine_number_planned or '' }}"
+                               placeholder="e.g. Haas VF2"
+                               {% if op.operation_type == 'assembly' %}disabled{% endif %}>
+                        {% if op.operation_type == 'assembly' %}
+                        <small class="text-muted">N/A for assembly operations</small>
+                        {% else %}
+                        <small class="text-muted">Leave blank or change if different from planned</small>
+                        {% endif %}
+                    </div>
+                    <div class="mb-3">
+                        <label for="quantity_started" class="form-label">Quantity Started (optional)</label>
+                        <input type="number" class="form-control" id="quantity_started" name="quantity_started"
+                               min="1" placeholder="{{ op.quantity_ordered }}">
+                        <small class="text-muted">Leave blank to enter later when completing</small>
+                    </div>
+                    <div class="mb-3">
+                        <label for="notes" class="form-label">Notes (optional)</label>
+                        <textarea class="form-control" id="notes" name="notes" rows="2"
+                                  placeholder="Any setup notes, tool changes, etc."></textarea>
+                    </div>
+                    <button type="submit" class="btn btn-primary w-100">
+                        <i class="bi bi-play-circle"></i> Start Operation Now
+                    </button>
+                </form>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- COMPLETE OPERATION -->
+    {% if can_complete[0] %}
+    <div class="col-md-6">
+        <div class="card border-success">
+            <div class="card-header bg-success text-white">
+                <h5 class="mb-0">
+                    <i class="bi bi-check-circle"></i> 
+                    {% if op.operation_type == 'outside_service' %}
+                        Mark as Received from Supplier
+                    {% else %}
+                        Complete Operation (Partial or Full)
+                    {% endif %}
+                </h5>
+            </div>
+            <div class="card-body">
+                {% if op.operation_type == 'outside_service' %}
+                <p class="mb-3">Parts have been received back from the supplier.</p>
+                {% elif op.quantity_finished and op.quantity_finished > 0 %}
+                <div class="alert alert-info">
+                    <strong>Progress:</strong> {{ op.quantity_finished }}/{{ op.quantity_ordered }} parts completed so far.
+                    <br>Remaining: {{ op.quantity_ordered - op.quantity_finished }} parts
+                </div>
+                {% endif %}
+                <form method="POST" action="{{ url_for('shop_floor.complete_operation', operation_id=op.operation_id) }}">
+                    <div class="mb-3">
+                        <label for="quantity_finished" class="form-label required-field">Quantity Finished This Run</label>
+                        <input type="number" class="form-control" id="quantity_finished" name="quantity_finished"
+                               min="0" placeholder="How many parts did you complete now?" required>
+                        <small class="text-muted">
+                            {% if op.quantity_finished and op.quantity_finished > 0 %}
+                            Enter additional parts completed (will add to {{ op.quantity_finished }} already done)
+                            {% else %}
+                            Enter number of parts completed this run
+                            {% endif %}
+                        </small>
+                    </div>
+                    <div class="mb-3">
+                        <label for="machine_actual" class="form-label">Machine Used</label>
+                        <input type="text" class="form-control" id="machine_actual" name="machine_actual"
+                               value="{{ op.machine_number_actual or op.machine_number_planned or '' }}"
+                               placeholder="e.g. Haas VF2"
+                               {% if op.operation_type == 'assembly' %}disabled{% endif %}>
+                        {% if op.operation_type == 'assembly' %}
+                        <small class="text-muted">N/A for assembly operations</small>
+                        {% endif %}
+                    </div>
+                    <div class="mb-3">
+                        <label for="notes" class="form-label">Completion Notes (optional)</label>
+                        <textarea class="form-control" id="notes" name="notes" rows="2"
+                                  placeholder="Any issues, tool wear, quality notes..."></textarea>
+                    </div>
+                    <button type="submit" class="btn btn-success w-100">
+                        <i class="bi bi-check-circle"></i> 
+                        {% if op.operation_type == 'outside_service' %}
+                            Mark as Received
+                        {% else %}
+                            Complete Operation
+                        {% endif %}
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- REOPEN OPERATION -->
+    {% if can_reopen[0] %}
+    <div class="col-md-6">
+        <div class="card border-warning">
+            <div class="card-header bg-warning text-dark">
+                <h5 class="mb-0"><i class="bi bi-arrow-counterclockwise"></i> Reopen Operation</h5>
+            </div>
+            <div class="card-body">
+                <p class="text-muted">This operation has been completed. You can reopen it if there was an error or rework is needed.</p>
+                <form method="POST" action="{{ url_for('shop_floor.reopen_operation', operation_id=op.operation_id) }}">
+                    <div class="mb-3">
+                        <label for="reason" class="form-label required-field">Reason for Reopening</label>
+                        <textarea class="form-control" id="reason" name="reason" rows="2" required
+                                  placeholder="e.g. Incorrect machine entered, rework needed, wrong WO marked complete..."></textarea>
+                    </div>
+                    <button type="submit" class="btn btn-warning w-100"
+                            onclick="return confirm('Reopen this completed operation? This will be logged in the audit trail.')">
+                        <i class="bi bi-arrow-counterclockwise"></i> Reopen Operation
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- MANAGER OVERRIDE - Force End -->
+    {% if op.status == 'in_progress' and current_user.is_operations_manager() %}
+    <div class="col-md-6">
+        <div class="card border-danger">
+            <div class="card-header bg-danger text-white">
+                <h5 class="mb-0"><i class="bi bi-x-octagon"></i> Manager Override: Force End</h5>
+            </div>
+            <div class="card-body">
+                <p class="text-danger"><strong>Manager Only:</strong> Force-end this operation to reassign to another employee.</p>
+                <p class="small text-muted">This resets the operation to "pending" so someone else can start it. The original start info will be logged in the audit trail.</p>
+                <form method="POST" action="{{ url_for('shop_floor.force_end_operation', operation_id=op.operation_id) }}">
+                    <div class="mb-3">
+                        <label for="reason" class="form-label required-field">Reason for Force-Ending</label>
+                        <textarea class="form-control" id="reason" name="reason" rows="2" required
+                                  placeholder="e.g. Employee called in sick, reassigning to available machinist..."></textarea>
+                    </div>
+                    <button type="submit" class="btn btn-danger w-100"
+                            onclick="return confirm('Force-end this operation? It will be reset to pending and can be reassigned.')">
+                        <i class="bi bi-x-octagon"></i> Force End & Reassign
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- ERRORS -->
+    {% if not can_start[0] and not can_complete[0] and not can_reopen[0] %}
+    <div class="col-12">
+        <div class="alert alert-warning">
+            <h6><i class="bi bi-info-circle"></i> No Actions Available</h6>
+            <p class="mb-0">
+                This operation cannot be started, completed, or reopened at this time.
+                {% if op.status == 'complete' %}
+                    It has already been completed.
+                {% elif op.status == 'on_hold' %}
+                    It is currently on hold.
+                {% endif %}
+            </p>
+        </div>
+    </div>
+    {% endif %}
+
+</div>
+
+<!-- Drawing Reference -->
+{% if op.drawing_file_path %}
+<div class="card mt-3">
+    <div class="card-header">
+        <h6 class="mb-0"><i class="bi bi-file-earmark-pdf"></i> Drawing Reference</h6>
+    </div>
+    <div class="card-body">
+        <p class="mb-0">
+            <strong>Drawing:</strong> <code>{{ op.drawing_file_path }}</code>
+            <small class="text-muted">(Access from file server)</small>
+        </p>
+    </div>
+</div>
+{% endif %}
+
+<!-- Back Button -->
+<div class="mt-3">
+    <a href="{{ url_for('shop_floor.my_operations') }}" class="btn btn-secondary">
+        <i class="bi bi-arrow-left"></i> Back to My Operations
+    </a>
+    <a href="{{ url_for('work_orders.view_work_order', work_order_id=op.work_order_id) }}" class="btn btn-outline-secondary">
+        <i class="bi bi-file-earmark-text"></i> View Full Traveler
+    </a>
+</div>
+
+{% endblock %}
