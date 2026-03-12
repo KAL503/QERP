@@ -1,0 +1,159 @@
+{% extends "base.html" %}
+
+{% block title %}Work In Progress Report - QERP{% endblock %}
+
+{% block content %}
+
+<div class="row mb-3">
+    <div class="col">
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item"><a href="{{ url_for('dashboard') }}">Dashboard</a></li>
+                <li class="breadcrumb-item"><a href="{{ url_for('reports.reports_dashboard') }}">Reports</a></li>
+                <li class="breadcrumb-item active">Work In Progress</li>
+            </ol>
+        </nav>
+    </div>
+</div>
+
+<div class="row mb-4">
+    <div class="col">
+        <h1><i class="bi bi-gear-wide-connected"></i> Work In Progress (WIP) Report</h1>
+        <p class="text-muted">Current active work orders on shop floor</p>
+    </div>
+</div>
+
+<!-- Summary Stats -->
+<div class="row mb-4">
+    <div class="col-md-6">
+        <div class="card border-primary">
+            <div class="card-body text-center">
+                <h2 class="mb-0">{{ total_wip }}</h2>
+                <p class="text-muted mb-0">Total WIP Work Orders</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-6">
+        <div class="card border-danger">
+            <div class="card-body text-center">
+                <h2 class="mb-0 text-danger">{{ overdue }}</h2>
+                <p class="text-muted mb-0">Overdue Work Orders</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- WIP Table -->
+{% if wip %}
+<div class="card">
+    <div class="card-header">
+        <h5 class="mb-0">Active Work Orders</h5>
+    </div>
+    <div class="card-body p-0">
+        <div class="table-responsive">
+            <table class="table table-hover table-sm mb-0">
+                <thead class="table-light">
+                    <tr>
+                        <th>WO #</th>
+                        <th>Customer</th>
+                        <th>Part</th>
+                        <th>Qty</th>
+                        <th>Due Date</th>
+                        <th>Status</th>
+                        <th>Progress</th>
+                        <th>Current Op</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for wo in wip %}
+                    <tr {% if wo.is_overdue %}class="table-danger"{% endif %}>
+                        <td>
+                            <a href="{{ url_for('work_orders.view_work_order', work_order_id=wo.work_order_id) }}">
+                                {{ wo.work_order_number }}
+                            </a>
+                            {% if wo.is_overdue %}
+                                <span class="badge bg-danger ms-1">OVERDUE</span>
+                            {% endif %}
+                        </td>
+                        <td>{{ wo.customer_code }}</td>
+                        <td>{{ wo.customer_part_number }}</td>
+                        <td>{{ wo.quantity_ordered }}</td>
+                        <td>
+                            {{ wo.production_due_date }}
+                            {% if wo.is_overdue %}
+                                <br><small class="text-danger">
+                                    {{ (wo.production_due_date - today)|abs }} days overdue
+                                </small>
+                            {% endif %}
+                        </td>
+                        <td>
+                            <span class="badge 
+                                {% if wo.status == 'released_to_floor' %}bg-info
+                                {% elif wo.status == 'in_production' %}bg-primary
+                                {% elif wo.status == 'final_inspection' %}bg-warning text-dark
+                                {% endif %}">
+                                {{ wo.status|replace('_', ' ')|title }}
+                            </span>
+                        </td>
+                        <td>
+                            <div class="d-flex align-items-center">
+                                <div class="progress flex-grow-1 me-2" style="height: 20px; min-width: 100px;">
+                                    {% set progress_pct = (wo.completed_ops / wo.total_ops * 100)|round|int if wo.total_ops > 0 else 0 %}
+                                    <div class="progress-bar 
+                                        {% if progress_pct >= 75 %}bg-success
+                                        {% elif progress_pct >= 50 %}bg-info
+                                        {% elif progress_pct >= 25 %}bg-warning
+                                        {% else %}bg-danger
+                                        {% endif %}" 
+                                        style="width: {{ progress_pct }}%">
+                                        {{ progress_pct }}%
+                                    </div>
+                                </div>
+                                <small class="text-muted">{{ wo.completed_ops }}/{{ wo.total_ops }}</small>
+                            </div>
+                        </td>
+                        <td>
+                            {% if wo.current_op %}
+                                <span class="badge bg-info">{{ wo.current_op }}</span>
+                            {% elif wo.completed_ops == wo.total_ops %}
+                                <span class="badge bg-success">Complete</span>
+                            {% else %}
+                                <span class="text-muted">—</span>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% else %}
+<div class="alert alert-success">
+    <i class="bi bi-check-circle"></i>
+    <strong>No work in progress!</strong> All work orders are either in planning or completed.
+</div>
+{% endif %}
+
+<!-- Legend -->
+<div class="card mt-3">
+    <div class="card-body">
+        <h6>Progress Indicators:</h6>
+        <div class="row">
+            <div class="col-md-6">
+                <ul class="mb-0">
+                    <li><span class="badge bg-danger">Red</span> 0-24% Complete</li>
+                    <li><span class="badge bg-warning text-dark">Yellow</span> 25-49% Complete</li>
+                </ul>
+            </div>
+            <div class="col-md-6">
+                <ul class="mb-0">
+                    <li><span class="badge bg-info">Blue</span> 50-74% Complete</li>
+                    <li><span class="badge bg-success">Green</span> 75-100% Complete</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock %}
