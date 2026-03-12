@@ -1,0 +1,203 @@
+{% extends "base.html" %}
+
+{% block title %}{% if supplier %}Edit{% else %}New{% endif %} Supplier - QERP{% endblock %}
+
+{% block content %}
+
+<div class="row mb-3">
+    <div class="col">
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item"><a href="{{ url_for('dashboard') }}">Dashboard</a></li>
+                <li class="breadcrumb-item"><a href="{{ url_for('suppliers.list_suppliers') }}">Suppliers</a></li>
+                <li class="breadcrumb-item active">{% if supplier %}Edit{% else %}New{% endif %}</li>
+            </ol>
+        </nav>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-md-12">
+        <div class="card">
+            <div class="card-header">
+                <h4 class="mb-0">
+                    <i class="bi bi-truck"></i>
+                    {% if supplier %}Edit Supplier: {{ supplier.supplier_code }}{% else %}New Supplier{% endif %}
+                </h4>
+            </div>
+            <div class="card-body">
+                <form method="POST">
+                    <!-- Basic Info -->
+                    <h5 class="border-bottom pb-2 mb-3">Basic Information</h5>
+                    <div class="row mb-3">
+                        <div class="col-md-4">
+                            <label for="supplier_code" class="form-label required-field">Supplier Code</label>
+                            <input type="text" class="form-control text-uppercase" id="supplier_code" 
+                                   name="supplier_code" required
+                                   value="{{ supplier.supplier_code if supplier else '' }}"
+                                   pattern="[A-Z0-9_-]+"
+                                   placeholder="e.g. HD, MCGREGORS">
+                            <small class="text-muted">Letters, numbers, underscore, hyphen only</small>
+                        </div>
+                        <div class="col-md-8">
+                            <label for="supplier_name" class="form-label required-field">Supplier Name</label>
+                            <input type="text" class="form-control" id="supplier_name" 
+                                   name="supplier_name" required
+                                   value="{{ supplier.supplier_name if supplier else '' }}"
+                                   placeholder="e.g. Copeland Lumber">
+                        </div>
+                    </div>
+                    
+                    <div class="row mb-3">
+                        <div class="col-md-4">
+                            <label for="category" class="form-label required-field">Category</label>
+                            <select class="form-select" id="category" name="category" required>
+                                <option value="">Select category...</option>
+                                <option value="outside_service" 
+                                    {% if supplier and supplier.category == 'outside_service' %}selected{% endif %}>
+                                    Outside Service
+                                </option>
+                                <option value="raw_material" 
+                                    {% if supplier and supplier.category == 'raw_material' %}selected{% endif %}>
+                                    Raw Material
+                                </option>
+                                <option value="consumables" 
+                                    {% if supplier and supplier.category == 'consumables' %}selected{% endif %}>
+                                    Consumables (COGS)
+                                </option>
+                                <option value="tooling" 
+                                    {% if supplier and supplier.category == 'tooling' %}selected{% endif %}>
+                                    Tooling
+                                </option>
+                                <option value="other" 
+                                    {% if supplier and supplier.category == 'other' %}selected{% endif %}>
+                                    Other
+                                </option>
+                            </select>
+                            <small class="text-muted">Consumables = fasteners, glue, tape, etc.</small>
+                        </div>
+                        <div class="col-md-4">
+                            <label for="approved_status" class="form-label required-field">Approval Status</label>
+                            <select class="form-select" id="approved_status" name="approved_status" required>
+                                <option value="approved" 
+                                    {% if not supplier or supplier.approved_status == 'approved' %}selected{% endif %}>
+                                    Approved
+                                </option>
+                                <option value="conditional" 
+                                    {% if supplier and supplier.approved_status == 'conditional' %}selected{% endif %}>
+                                    Conditional
+                                </option>
+                                <option value="probation" 
+                                    {% if supplier and supplier.approved_status == 'probation' %}selected{% endif %}>
+                                    Probation
+                                </option>
+                                <option value="disapproved" 
+                                    {% if supplier and supplier.approved_status == 'disapproved' %}selected{% endif %}>
+                                    Disapproved
+                                </option>
+                            </select>
+                        </div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="approved_processes" class="form-label">Approved Processes</label>
+                        <textarea class="form-control" id="approved_processes" name="approved_processes" rows="2"
+                                  placeholder="e.g. Clear Anodize, Electropolish, Heat Treat">{{ supplier.approved_processes if supplier else '' }}</textarea>
+                        <small class="text-muted">Comma-separated list of processes this supplier is approved for</small>
+                    </div>
+                    
+                    <!-- Contact Info -->
+                    <h5 class="border-bottom pb-2 mb-3 mt-4">Contact Information</h5>
+                    <div class="row mb-3">
+                        <div class="col-md-4">
+                            <label for="primary_contact" class="form-label">Primary Contact</label>
+                            <input type="text" class="form-control" id="primary_contact" 
+                                   name="primary_contact"
+                                   value="{{ supplier.primary_contact if supplier else '' }}"
+                                   placeholder="Contact person name">
+                        </div>
+                        <div class="col-md-4">
+                            <label for="email" class="form-label">Email</label>
+                            <input type="email" class="form-control" id="email" 
+                                   name="email"
+                                   value="{{ supplier.email if supplier else '' }}"
+                                   placeholder="email@supplier.com">
+                        </div>
+                        <div class="col-md-4">
+                            <label for="phone" class="form-label">Phone</label>
+                            <input type="tel" class="form-control" id="phone" 
+                                   name="phone"
+                                   value="{{ supplier.phone if supplier else '' }}"
+                                   placeholder="(555) 123-4567">
+                        </div>
+                    </div>
+                    
+                    <!-- Address -->
+                    <h5 class="border-bottom pb-2 mb-3 mt-4">Address</h5>
+                    <div class="mb-3">
+                        <label for="address_line1" class="form-label">Address Line 1</label>
+                        <input type="text" class="form-control" id="address_line1" 
+                               name="address_line1"
+                               value="{{ supplier.address_line1 if supplier else '' }}"
+                               placeholder="Street address">
+                    </div>
+                    <div class="mb-3">
+                        <label for="address_line2" class="form-label">Address Line 2</label>
+                        <input type="text" class="form-control" id="address_line2" 
+                               name="address_line2"
+                               value="{{ supplier.address_line2 if supplier else '' }}"
+                               placeholder="Suite, unit, building, etc.">
+                    </div>
+                    <div class="row mb-3">
+                        <div class="col-md-4">
+                            <label for="city" class="form-label">City</label>
+                            <input type="text" class="form-control" id="city" 
+                                   name="city"
+                                   value="{{ supplier.city if supplier else '' }}">
+                        </div>
+                        <div class="col-md-3">
+                            <label for="state" class="form-label">State/Province</label>
+                            <input type="text" class="form-control" id="state" 
+                                   name="state"
+                                   value="{{ supplier.state if supplier else '' }}"
+                                   placeholder="e.g. CA">
+                        </div>
+                        <div class="col-md-2">
+                            <label for="postal_code" class="form-label">Postal Code</label>
+                            <input type="text" class="form-control" id="postal_code" 
+                                   name="postal_code"
+                                   value="{{ supplier.postal_code if supplier else '' }}">
+                        </div>
+                        <div class="col-md-3">
+                            <label for="country" class="form-label">Country</label>
+                            <input type="text" class="form-control" id="country" 
+                                   name="country"
+                                   value="{{ supplier.country if supplier else 'USA' }}">
+                        </div>
+                    </div>
+                    
+                    <!-- Notes -->
+                    <h5 class="border-bottom pb-2 mb-3 mt-4">Notes</h5>
+                    <div class="mb-3">
+                        <label for="notes" class="form-label">Supplier Notes</label>
+                        <textarea class="form-control" id="notes" name="notes" rows="4"
+                                  placeholder="Quality notes, evaluation history, certifications, etc.">{{ supplier.notes if supplier else '' }}</textarea>
+                    </div>
+                    
+                    <!-- Submit -->
+                    <div class="border-top pt-3 mt-4">
+                        <button type="submit" class="btn btn-primary">
+                            <i class="bi bi-check-circle"></i> {% if supplier %}Update{% else %}Create{% endif %} Supplier
+                        </button>
+                        <a href="{% if supplier %}{{ url_for('suppliers.view_supplier', supplier_id=supplier.supplier_id) }}{% else %}{{ url_for('suppliers.list_suppliers') }}{% endif %}" 
+                           class="btn btn-secondary">
+                            <i class="bi bi-x-circle"></i> Cancel
+                        </a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock %}
